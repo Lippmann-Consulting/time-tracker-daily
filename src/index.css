@@ -34,12 +34,18 @@ All colors MUST be HSL.
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
+    
+    --warning: 38 92% 50%;
+    --warning-foreground: 222 47% 11%;
 
     --border: 220 13% 91%;
     --input: 220 13% 91%;
     --ring: 174 62% 47%;
 
     --radius: 0.75rem;
+    
+    --focus-ring: 174 62% 47%;
+    --focus-ring-offset: 0 0% 100%;
     
     --gradient-primary: linear-gradient(135deg, hsl(174 62% 47%), hsl(174 62% 57%));
     --gradient-accent: linear-gradient(135deg, hsl(330 81% 60%), hsl(330 81% 70%));
@@ -94,10 +100,17 @@ All colors MUST be HSL.
 
     --destructive: 0 63% 31%;
     --destructive-foreground: 0 0% 98%;
+    
+    --warning: 38 92% 50%;
+    --warning-foreground: 222 47% 11%;
 
     --border: 217 33% 17%;
     --input: 217 33% 17%;
     --ring: 174 62% 57%;
+    
+    --focus-ring: 174 62% 57%;
+    --focus-ring-offset: 222 47% 11%;
+    
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -116,5 +129,22 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+  }
+  
+  /* Focus indicators for keyboard navigation */
+  *:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+  
+  /* Reduced motion support */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }
