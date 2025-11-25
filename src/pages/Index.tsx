@@ -115,16 +115,16 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b bg-card shadow-sm">
-        <div className="container mx-auto px-4 py-6">
+      <header className="border-b bg-card shadow-sm sticky top-0 z-10">
+        <div className="container mx-auto px-4 py-4 md:py-6">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Clock className="h-8 w-8 text-primary" />
-              <h1 className="text-3xl font-bold text-foreground">Zeiterfassung</h1>
+            <div className="flex items-center gap-2 md:gap-3">
+              <Clock className="h-6 w-6 md:h-8 md:w-8 text-primary" />
+              <h1 className="text-xl md:text-3xl font-bold text-foreground">Zeiterfassung</h1>
             </div>
             <div className="text-right">
-              <div className="text-sm text-muted-foreground">Aktuelle Zeit</div>
-              <div className="text-2xl font-semibold text-foreground">
+              <div className="text-xs md:text-sm text-muted-foreground">Aktuelle Zeit</div>
+              <div className="text-lg md:text-2xl font-semibold text-foreground">
                 {formatTime(currentTime)}
               </div>
             </div>
@@ -133,28 +133,28 @@ const Index = () => {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-6 md:py-8 max-w-4xl">
         {/* Check-in/out Section */}
-        <div className="mb-12">
-          <div className="bg-card rounded-2xl shadow-lg p-8 border">
+        <div className="mb-8 md:mb-12">
+          <div className="bg-card rounded-2xl shadow-lg p-6 md:p-8 border">
             <div className="text-center mb-6">
-              <h2 className="text-2xl font-semibold text-foreground mb-2">
+              <h2 className="text-xl md:text-2xl font-semibold text-foreground mb-2">
                 {currentSession ? "Sie sind eingecheckt" : "Bereit zum Einchecken"}
               </h2>
-              <p className="text-muted-foreground">
+              <p className="text-sm md:text-base text-muted-foreground">
                 {currentSession
                   ? `Eingecheckt seit ${currentSession.checkIn}`
                   : "Starten Sie Ihren Arbeitstag"}
               </p>
             </div>
 
-            <div className="flex gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center">
               <Button
                 variant="success"
                 size="xl"
                 onClick={handleCheckIn}
                 disabled={!!currentSession}
-                className="min-w-[200px]"
+                className="w-full sm:w-auto sm:min-w-[200px] touch-manipulation"
               >
                 <LogIn className="mr-2 h-5 w-5" />
                 Kommen
@@ -164,7 +164,7 @@ const Index = () => {
                 size="xl"
                 onClick={handleCheckOut}
                 disabled={!currentSession}
-                className="min-w-[200px]"
+                className="w-full sm:w-auto sm:min-w-[200px] touch-manipulation"
               >
                 <LogOut className="mr-2 h-5 w-5" />
                 Gehen
@@ -175,22 +175,22 @@ const Index = () => {
 
         {/* Time Entries List */}
         <div>
-          <h2 className="text-2xl font-semibold text-foreground mb-6">
+          <h2 className="text-xl md:text-2xl font-semibold text-foreground mb-4 md:mb-6">
             Zeiteinträge
           </h2>
 
           {records.length === 0 ? (
             <div className="text-center py-12">
-              <Clock className="h-16 w-16 text-muted-foreground mx-auto mb-4 opacity-50" />
-              <p className="text-muted-foreground text-lg">
+              <Clock className="h-12 w-12 md:h-16 md:w-16 text-muted-foreground mx-auto mb-4 opacity-50" />
+              <p className="text-base md:text-lg text-muted-foreground">
                 Noch keine Zeiteinträge vorhanden
               </p>
-              <p className="text-muted-foreground text-sm mt-2">
+              <p className="text-sm text-muted-foreground mt-2">
                 Checken Sie ein, um Ihre Arbeitszeit zu erfassen
               </p>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3 md:space-y-4">
               {records.map((record) => (
                 <TimeEntry
                   key={record.id}
