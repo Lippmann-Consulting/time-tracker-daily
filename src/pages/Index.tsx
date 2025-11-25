@@ -67,8 +67,9 @@ const Index = () => {
     const diffSeconds = outTotalSeconds - inTotalSeconds;
     const hours = Math.floor(diffSeconds / 3600);
     const minutes = Math.floor((diffSeconds % 3600) / 60);
+    const seconds = diffSeconds % 60;
 
-    return `${hours}h ${minutes}m`;
+    return `${hours}h ${minutes}m ${seconds}s`;
   };
 
   const handleCheckIn = () => {
