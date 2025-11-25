@@ -1,30 +1,35 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { TimeEntry } from "@/components/TimeEntry";
-import { LogIn, LogOut, Clock } from "lucide-react";
-import { toast } from "sonner";
-
-interface TimeRecord {
-  id: string;
-  date: string;
-  checkIn: string;
-  checkOut?: string;
-}
+import { Clock, LogIn, LogOut, Coffee, TrendingUp } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { Statistics, TimeRecord } from "@/components/Statistics";
+import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
-  const [records, setRecords] = useState<TimeRecord[]>([]);
-  const [currentSession, setCurrentSession] = useState<TimeRecord | null>(null);
+  const [timeRecords, setTimeRecords] = useState<TimeRecord[]>([]);
+  const [currentSession, setCurrentSession] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [currentBreak, setCurrentBreak] = useState<string | null>(null);
+  const [notes, setNotes] = useState("");
+  const [showStats, setShowStats] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
-    const stored = localStorage.getItem("timeRecords");
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      setRecords(parsed);
-      
-      const active = parsed.find((r: TimeRecord) => !r.checkOut);
-      if (active) {
-        setCurrentSession(active);
+    const storedRecords = localStorage.getItem("timeRecords");
+    if (storedRecords) {
+      try {
+        const parsed = JSON.parse(storedRecords);
+        setTimeRecords(parsed);
+        
+        const activeRecord = parsed.find((r: TimeRecord) => !r.checkOut);
+        if (activeRecord) {
+          setCurrentSession(activeRecord.id);
+        }
+      } catch (error) {
+        console.error("Error parsing stored records:", error);
       }
     }
 
@@ -35,9 +40,9 @@ const Index = () => {
     return () => clearInterval(timer);
   }, []);
 
-  const saveRecords = (newRecords: TimeRecord[]) => {
-    localStorage.setItem("timeRecords", JSON.stringify(newRecords));
-    setRecords(newRecords);
+  const saveRecords = (records: TimeRecord[]) => {
+    localStorage.setItem("timeRecords", JSON.stringify(records));
+    setTimeRecords(records);
   };
 
   const formatTime = (date: Date) => {
@@ -48,7 +53,8 @@ const Index = () => {
     });
   };
 
-  const formatDate = (date: Date) => {
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
     return date.toLocaleDateString("de-DE", {
       weekday: "long",
       year: "numeric",
@@ -57,162 +63,267 @@ const Index = () => {
     });
   };
 
-  const calculateDuration = (checkIn: string, checkOut: string) => {
-    const [inHours, inMinutes, inSeconds] = checkIn.split(":").map(Number);
-    const [outHours, outMinutes, outSeconds] = checkOut.split(":").map(Number);
-
-    const inTotalSeconds = inHours * 3600 + inMinutes * 60 + inSeconds;
-    const outTotalSeconds = outHours * 3600 + outMinutes * 60 + outSeconds;
-    
-    const diffSeconds = outTotalSeconds - inTotalSeconds;
-    const hours = Math.floor(diffSeconds / 3600);
-    const minutes = Math.floor((diffSeconds % 3600) / 60);
-    const seconds = diffSeconds % 60;
-
-    return `${hours}h ${minutes}m ${seconds}s`;
-  };
-
   const handleCheckIn = () => {
-    if (currentSession) {
-      toast.error("Sie sind bereits eingecheckt!");
-      return;
-    }
-
     const now = new Date();
     const newRecord: TimeRecord = {
-      id: Date.now().toString(),
-      date: formatDate(now),
-      checkIn: formatTime(now),
+      id: crypto.randomUUID(),
+      date: now.toISOString().split("T")[0],
+      checkIn: now.toISOString(),
+      breaks: [],
+      notes: notes.trim() || undefined,
     };
-
-    const newRecords = [newRecord, ...records];
-    saveRecords(newRecords);
-    setCurrentSession(newRecord);
-    toast.success("Erfolgreich eingecheckt!");
+    
+    const updatedRecords = [newRecord, ...timeRecords];
+    saveRecords(updatedRecords);
+    setCurrentSession(newRecord.id);
+    setNotes("");
+    
+    toast({
+      title: "Check-In erfolgreich",
+      description: "Arbeitszeit wird jetzt erfasst",
+    });
   };
 
   const handleCheckOut = () => {
-    if (!currentSession) {
-      toast.error("Sie sind nicht eingecheckt!");
-      return;
+    if (!currentSession) return;
+
+    if (currentBreak) {
+      handleEndBreak();
     }
 
-    const now = new Date();
-    const updatedRecord = {
-      ...currentSession,
-      checkOut: formatTime(now),
-    };
-
-    const newRecords = records.map((r) =>
-      r.id === currentSession.id ? updatedRecord : r
+    const updatedRecords = timeRecords.map((record) =>
+      record.id === currentSession
+        ? { ...record, checkOut: new Date().toISOString(), notes: notes.trim() || record.notes }
+        : record
     );
-
-    saveRecords(newRecords);
+    
+    saveRecords(updatedRecords);
     setCurrentSession(null);
-    toast.success("Erfolgreich ausgecheckt!");
+    setNotes("");
+    
+    toast({
+      title: "Check-Out erfolgreich",
+      description: "Arbeitszeit wurde gespeichert",
+    });
+  };
+
+  const handleStartBreak = () => {
+    if (!currentSession) return;
+
+    const breakId = crypto.randomUUID();
+    const now = new Date();
+    
+    const updatedRecords = timeRecords.map((record) => {
+      if (record.id === currentSession) {
+        const breaks = record.breaks || [];
+        return {
+          ...record,
+          breaks: [...breaks, { start: now.toISOString() }],
+        };
+      }
+      return record;
+    });
+    
+    saveRecords(updatedRecords);
+    setCurrentBreak(breakId);
+    
+    toast({
+      title: "Pause gestartet",
+      description: "Pausenzeit wird erfasst",
+    });
+  };
+
+  const handleEndBreak = () => {
+    if (!currentSession || !currentBreak) return;
+
+    const now = new Date();
+    
+    const updatedRecords = timeRecords.map((record) => {
+      if (record.id === currentSession && record.breaks) {
+        const breaks = [...record.breaks];
+        const lastBreak = breaks[breaks.length - 1];
+        if (lastBreak && !lastBreak.end) {
+          lastBreak.end = now.toISOString();
+        }
+        return { ...record, breaks };
+      }
+      return record;
+    });
+    
+    saveRecords(updatedRecords);
+    setCurrentBreak(null);
+    
+    toast({
+      title: "Pause beendet",
+      description: "Arbeitszeit läuft wieder",
+    });
+  };
+
+  const handleDeleteRecord = (id: string) => {
+    const updatedRecords = timeRecords.filter((record) => record.id !== id);
+    saveRecords(updatedRecords);
+    
+    toast({
+      title: "Eintrag gelöscht",
+      description: "Der Zeiteintrag wurde entfernt",
+    });
+  };
+
+  const handleUpdateNotes = (id: string, newNotes: string) => {
+    const updatedRecords = timeRecords.map((record) =>
+      record.id === id ? { ...record, notes: newNotes } : record
+    );
+    saveRecords(updatedRecords);
   };
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-card shadow-sm sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4 md:py-6">
+      <header className="sticky top-0 z-10 bg-card/80 backdrop-blur-sm border-b border-border shadow-sm">
+        <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 md:gap-3">
-              <Clock className="h-6 w-6 md:h-8 md:w-8 text-primary" />
-              <h1 className="text-xl md:text-3xl font-bold text-foreground">Zeiterfassung</h1>
+            <div className="flex items-center gap-3">
+              <Clock className="w-8 h-8 text-primary" aria-hidden="true" />
+              <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+                Zeiterfassung
+              </h1>
             </div>
-            <div className="text-right">
-              <div className="text-xs md:text-sm text-muted-foreground">Aktuelle Zeit</div>
-              <div className="text-lg md:text-2xl font-semibold text-foreground">
-                {formatTime(currentTime)}
+            <div className="flex items-center gap-4">
+              <ThemeToggle />
+              <div className="text-right">
+                <p className="text-sm text-muted-foreground">Aktuelle Zeit</p>
+                <time className="text-xl md:text-2xl font-semibold text-foreground" dateTime={currentTime.toISOString()}>
+                  {formatTime(currentTime)}
+                </time>
               </div>
             </div>
           </div>
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-6 md:py-8 max-w-4xl">
-        {/* Check-in/out Section */}
-        <div className="mb-8 md:mb-12">
-          <div className="bg-card rounded-2xl shadow-lg p-6 md:p-8 border">
-            <div className="text-center mb-6">
-              <h2 className="text-xl md:text-2xl font-semibold text-foreground mb-2">
-                {currentSession ? "Sie sind eingecheckt" : "Bereit zum Einchecken"}
-              </h2>
-              <p className="text-sm md:text-base text-muted-foreground">
-                {currentSession
-                  ? `Eingecheckt seit ${currentSession.checkIn}`
-                  : "Starten Sie Ihren Arbeitstag"}
-              </p>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center">
-              <Button
-                variant="success"
-                size="xl"
-                onClick={handleCheckIn}
-                disabled={!!currentSession}
-                className="w-full sm:w-auto sm:min-w-[200px] touch-manipulation"
-              >
-                <LogIn className="mr-2 h-5 w-5" />
-                Kommen
-              </Button>
-              <Button
-                variant="accent"
-                size="xl"
-                onClick={handleCheckOut}
-                disabled={!currentSession}
-                className="w-full sm:w-auto sm:min-w-[200px] touch-manipulation"
-              >
-                <LogOut className="mr-2 h-5 w-5" />
-                Gehen
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        {/* Time Entries List */}
-        <div>
-          <h2 className="text-xl md:text-2xl font-semibold text-foreground mb-4 md:mb-6">
-            Zeiteinträge
-          </h2>
-
-          {records.length === 0 ? (
-            <div className="text-center py-12">
-              <Clock className="h-12 w-12 md:h-16 md:w-16 text-muted-foreground mx-auto mb-4 opacity-50" />
-              <p className="text-base md:text-lg text-muted-foreground">
-                Noch keine Zeiteinträge vorhanden
-              </p>
-              <p className="text-sm text-muted-foreground mt-2">
-                Checken Sie ein, um Ihre Arbeitszeit zu erfassen
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-3 md:space-y-4">
-              {records.map((record) => (
-                <TimeEntry
-                  key={record.id}
-                  date={record.date}
-                  checkIn={record.checkIn}
-                  checkOut={record.checkOut}
-                  duration={
-                    record.checkOut
-                      ? calculateDuration(record.checkIn, record.checkOut)
-                      : undefined
-                  }
-                  type={
-                    !record.checkOut
-                      ? "checkin"
-                      : record.checkOut
-                      ? "complete"
-                      : "checkout"
-                  }
+      <main className="container mx-auto px-4 py-6 md:py-8">
+        <div className="max-w-4xl mx-auto space-y-6">
+          <section aria-labelledby="time-tracking-heading" className="bg-card rounded-2xl shadow-lg p-6 md:p-8">
+            <h2 id="time-tracking-heading" className="text-xl md:text-2xl font-semibold mb-6 text-foreground">
+              Arbeitszeit erfassen
+            </h2>
+            
+            {!currentSession && (
+              <div className="mb-4">
+                <Label htmlFor="notes-input" className="text-foreground">
+                  Notizen (optional)
+                </Label>
+                <Textarea
+                  id="notes-input"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="z.B. Meeting mit Chef, Projekt XY..."
+                  maxLength={500}
+                  className="mt-2 resize-none"
+                  rows={3}
+                  aria-describedby="notes-hint"
                 />
-              ))}
+                <p id="notes-hint" className="text-xs text-muted-foreground mt-1">
+                  {notes.length}/500 Zeichen
+                </p>
+              </div>
+            )}
+            
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+              {!currentSession ? (
+                <Button
+                  onClick={handleCheckIn}
+                  className="flex-1 h-14 md:h-16 text-base md:text-lg font-semibold bg-success hover:bg-success/90 text-success-foreground touch-manipulation active:scale-95 transition-transform"
+                  aria-label="Arbeitsbeginn erfassen"
+                >
+                  <LogIn className="mr-2 h-5 w-5 md:h-6 md:w-6" aria-hidden="true" />
+                  Check-In
+                </Button>
+              ) : (
+                <>
+                  {!currentBreak ? (
+                    <Button
+                      onClick={handleStartBreak}
+                      variant="outline"
+                      className="flex-1 h-14 md:h-16 text-base md:text-lg font-semibold border-2 touch-manipulation active:scale-95 transition-transform"
+                      aria-label="Pause beginnen"
+                    >
+                      <Coffee className="mr-2 h-5 w-5 md:h-6 md:w-6" aria-hidden="true" />
+                      Pause
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={handleEndBreak}
+                      className="flex-1 h-14 md:h-16 text-base md:text-lg font-semibold bg-warning hover:bg-warning/90 text-warning-foreground touch-manipulation active:scale-95 transition-transform"
+                      aria-label="Pause beenden"
+                    >
+                      <Coffee className="mr-2 h-5 w-5 md:h-6 md:w-6" aria-hidden="true" />
+                      Pause beenden
+                    </Button>
+                  )}
+                  <Button
+                    onClick={handleCheckOut}
+                    className="flex-1 h-14 md:h-16 text-base md:text-lg font-semibold bg-destructive hover:bg-destructive/90 text-destructive-foreground touch-manipulation active:scale-95 transition-transform"
+                    aria-label="Arbeitsende erfassen"
+                  >
+                    <LogOut className="mr-2 h-5 w-5 md:h-6 md:w-6" aria-hidden="true" />
+                    Check-Out
+                  </Button>
+                </>
+              )}
+            </div>
+            
+            {currentSession && (
+              <div className="mt-6 p-4 bg-primary/10 rounded-lg border border-primary/20" role="status" aria-live="polite">
+                <p className="text-foreground font-medium text-center">
+                  ⏱️ Arbeitszeit läuft seit {formatTime(new Date(timeRecords.find(r => r.id === currentSession)?.checkIn || ''))}
+                  {currentBreak && <span className="ml-2 text-warning">(Pause läuft)</span>}
+                </p>
+              </div>
+            )}
+          </section>
+          
+          <div className="flex justify-center">
+            <Button
+              variant="outline"
+              onClick={() => setShowStats(!showStats)}
+              className="touch-manipulation"
+              aria-expanded={showStats}
+              aria-controls="statistics-section"
+            >
+              <TrendingUp className="mr-2 h-5 w-5" aria-hidden="true" />
+              {showStats ? "Statistiken ausblenden" : "Statistiken anzeigen"}
+            </Button>
+          </div>
+          
+          {showStats && (
+            <div id="statistics-section">
+              <Statistics records={timeRecords} />
             </div>
           )}
+
+          <section aria-labelledby="entries-heading" className="bg-card rounded-2xl shadow-lg p-6 md:p-8">
+            <h2 id="entries-heading" className="text-xl md:text-2xl font-semibold mb-6 text-foreground">
+              Zeiteinträge
+            </h2>
+            
+            {timeRecords.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">
+                Noch keine Zeiteinträge vorhanden. Starte mit einem Check-In!
+              </p>
+            ) : (
+              <ul className="space-y-3" role="list">
+                {timeRecords.map((record) => (
+                  <li key={record.id}>
+                    <TimeEntry 
+                      record={record} 
+                      onDelete={handleDeleteRecord}
+                      onUpdateNotes={handleUpdateNotes}
+                    />
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
         </div>
       </main>
     </div>
