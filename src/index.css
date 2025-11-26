@@ -148,3 +148,205 @@ All colors MUST be HSL.
     }
   }
 }
+
+@layer utilities {
+  /* Lichterketteneffekt Animation */
+  @keyframes light-chain {
+    0% {
+      background-position: 0% 0%, 100% 0%, 100% 100%, 0% 100%;
+    }
+    25% {
+      background-position: 100% 0%, 100% 100%, 0% 100%, 0% 0%;
+    }
+    50% {
+      background-position: 100% 100%, 0% 100%, 0% 0%, 100% 0%;
+    }
+    75% {
+      background-position: 0% 100%, 0% 0%, 100% 0%, 100% 100%;
+    }
+    100% {
+      background-position: 0% 0%, 100% 0%, 100% 100%, 0% 100%;
+    }
+  }
+
+  .light-chain-border {
+    position: relative;
+    overflow: visible;
+  }
+
+  .light-chain-border::before {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: calc(var(--radius) + 2px);
+    background: 
+      /* Oben */
+      linear-gradient(90deg, 
+        transparent 0%, 
+        transparent 8%,
+        #10b981 10%, 
+        #34d399 12%, 
+        #6ee7b7 14%,
+        #34d399 16%,
+        #10b981 18%,
+        transparent 20%,
+        transparent 28%,
+        #10b981 30%,
+        #34d399 32%,
+        #6ee7b7 34%,
+        #34d399 36%,
+        #10b981 38%,
+        transparent 40%,
+        transparent 48%,
+        #10b981 50%,
+        #34d399 52%,
+        #6ee7b7 54%,
+        #34d399 56%,
+        #10b981 58%,
+        transparent 60%,
+        transparent 68%,
+        #10b981 70%,
+        #34d399 72%,
+        #6ee7b7 74%,
+        #34d399 76%,
+        #10b981 78%,
+        transparent 80%,
+        transparent 88%,
+        #10b981 90%,
+        #34d399 92%,
+        #6ee7b7 94%,
+        #34d399 96%,
+        #10b981 98%,
+        transparent 100%
+      ),
+      /* Rechts */
+      linear-gradient(180deg,
+        transparent 0%,
+        transparent 8%,
+        #10b981 10%,
+        #34d399 12%,
+        #6ee7b7 14%,
+        #34d399 16%,
+        #10b981 18%,
+        transparent 20%,
+        transparent 28%,
+        #10b981 30%,
+        #34d399 32%,
+        #6ee7b7 34%,
+        #34d399 36%,
+        #10b981 38%,
+        transparent 40%,
+        transparent 48%,
+        #10b981 50%,
+        #34d399 52%,
+        #6ee7b7 54%,
+        #34d399 56%,
+        #10b981 58%,
+        transparent 60%,
+        transparent 68%,
+        #10b981 70%,
+        #34d399 72%,
+        #6ee7b7 74%,
+        #34d399 76%,
+        #10b981 78%,
+        transparent 80%,
+        transparent 88%,
+        #10b981 90%,
+        #34d399 92%,
+        #6ee7b7 94%,
+        #34d399 96%,
+        #10b981 98%,
+        transparent 100%
+      ),
+      /* Unten */
+      linear-gradient(270deg,
+        transparent 0%,
+        transparent 8%,
+        #10b981 10%,
+        #34d399 12%,
+        #6ee7b7 14%,
+        #34d399 16%,
+        #10b981 18%,
+        transparent 20%,
+        transparent 28%,
+        #10b981 30%,
+        #34d399 32%,
+        #6ee7b7 34%,
+        #34d399 36%,
+        #10b981 38%,
+        transparent 40%,
+        transparent 48%,
+        #10b981 50%,
+        #34d399 52%,
+        #6ee7b7 54%,
+        #34d399 56%,
+        #10b981 58%,
+        transparent 60%,
+        transparent 68%,
+        #10b981 70%,
+        #34d399 72%,
+        #6ee7b7 74%,
+        #34d399 76%,
+        #10b981 78%,
+        transparent 80%,
+        transparent 88%,
+        #10b981 90%,
+        #34d399 92%,
+        #6ee7b7 94%,
+        #34d399 96%,
+        #10b981 98%,
+        transparent 100%
+      ),
+      /* Links */
+      linear-gradient(360deg,
+        transparent 0%,
+        transparent 8%,
+        #10b981 10%,
+        #34d399 12%,
+        #6ee7b7 14%,
+        #34d399 16%,
+        #10b981 18%,
+        transparent 20%,
+        transparent 28%,
+        #10b981 30%,
+        #34d399 32%,
+        #6ee7b7 34%,
+        #34d399 36%,
+        #10b981 38%,
+        transparent 40%,
+        transparent 48%,
+        #10b981 50%,
+        #34d399 52%,
+        #6ee7b7 54%,
+        #34d399 56%,
+        #10b981 58%,
+        transparent 60%,
+        transparent 68%,
+        #10b981 70%,
+        #34d399 72%,
+        #6ee7b7 74%,
+        #34d399 76%,
+        #10b981 78%,
+        transparent 80%,
+        transparent 88%,
+        #10b981 90%,
+        #34d399 92%,
+        #6ee7b7 94%,
+        #34d399 96%,
+        #10b981 98%,
+        transparent 100%
+      );
+    background-size: 100% 4px, 4px 100%, 100% 4px, 4px 100%;
+    background-position: 0% 0%, 100% 0%, 100% 100%, 0% 100%;
+    background-repeat: no-repeat;
+    animation: light-chain 2s linear infinite;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  .light-chain-border:hover::before {
+    opacity: 1;
+  }
+}
