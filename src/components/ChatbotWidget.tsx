@@ -82,22 +82,44 @@ const ChatbotWidget = () => {
         }),
       });
 
+      console.log("Response status:", response.status);
+      console.log("Response ok:", response.ok);
+
       if (!response.ok) {
-        throw new Error("Netzwerkfehler");
+        throw new Error(`Netzwerkfehler: ${response.status}`);
       }
 
       const data = await response.json();
+      console.log("Received data:", data);
+      console.log("Data type:", typeof data);
+      console.log("Is array:", Array.isArray(data));
       
       // n8n gibt ein Array zurück mit einem "output" Feld
       let botText = "Entschuldigung, ich konnte keine Antwort generieren.";
       
-      if (Array.isArray(data) && data.length > 0 && data[0].output) {
-        botText = data[0].output;
-      } else if (data.response) {
-        botText = data.response;
-      } else if (data.message) {
-        botText = data.message;
+      if (Array.isArray(data) && data.length > 0) {
+        console.log("First item:", data[0]);
+        if (data[0].output) {
+          botText = data[0].output;
+          console.log("Using output field:", botText);
+        } else if (data[0].message) {
+          botText = data[0].message;
+          console.log("Using message field:", botText);
+        }
+      } else if (typeof data === 'object' && data !== null) {
+        if (data.output) {
+          botText = data.output;
+          console.log("Using direct output:", botText);
+        } else if (data.response) {
+          botText = data.response;
+          console.log("Using response field:", botText);
+        } else if (data.message) {
+          botText = data.message;
+          console.log("Using message field:", botText);
+        }
       }
+      
+      console.log("Final bot text:", botText);
       
       const botMessage: Message = {
         id: crypto.randomUUID(),
@@ -109,6 +131,7 @@ const ChatbotWidget = () => {
       setMessages((prev) => [...prev, botMessage]);
     } catch (error) {
       console.error("Fehler beim Senden der Nachricht:", error);
+      console.error("Error details:", error instanceof Error ? error.message : error);
       
       const errorMessage: Message = {
         id: crypto.randomUUID(),
