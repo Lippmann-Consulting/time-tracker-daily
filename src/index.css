@@ -71,6 +71,11 @@ All colors MUST be HSL.
     --sidebar-border: 220 13% 91%;
 
     --sidebar-ring: 217.2 91.2% 59.8%;
+    
+    --chatbot-primary: 237 23% 36%;
+    --chatbot-primary-foreground: 0 0% 100%;
+    --chatbot-secondary: 260 50% 66%;
+    --chatbot-secondary-foreground: 0 0% 100%;
   }
 
   .dark {
@@ -119,6 +124,11 @@ All colors MUST be HSL.
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+    
+    --chatbot-primary: 237 23% 36%;
+    --chatbot-primary-foreground: 0 0% 100%;
+    --chatbot-secondary: 260 50% 66%;
+    --chatbot-secondary-foreground: 0 0% 100%;
   }
 }
 
@@ -348,5 +358,17 @@ All colors MUST be HSL.
 
   .light-chain-border:hover::before {
     opacity: 1;
+  }
+  
+  /* Chatbot wiggle animation */
+  @keyframes wiggle {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-5deg); }
+    50% { transform: rotate(5deg); }
+    75% { transform: rotate(-5deg); }
+  }
+  
+  .animate-wiggle {
+    animation: wiggle 0.5s ease-in-out;
   }
 }

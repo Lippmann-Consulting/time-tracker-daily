@@ -65,6 +65,12 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        chatbot: {
+          primary: "hsl(var(--chatbot-primary))",
+          "primary-foreground": "hsl(var(--chatbot-primary-foreground))",
+          secondary: "hsl(var(--chatbot-secondary))",
+          "secondary-foreground": "hsl(var(--chatbot-secondary-foreground))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

@@ -6,6 +6,7 @@ import { TimeEntry } from "@/components/TimeEntry";
 import { Clock, LogIn, LogOut, Coffee, TrendingUp } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Statistics, TimeRecord } from "@/components/Statistics";
+import ChatbotWidget from "@/components/ChatbotWidget";
 import { useToast } from "@/hooks/use-toast";
 import confetti from "canvas-confetti";
 
@@ -376,6 +377,8 @@ const Index = () => {
           </section>
         </div>
       </main>
+
+      <ChatbotWidget />
     </div>
   );
 };
