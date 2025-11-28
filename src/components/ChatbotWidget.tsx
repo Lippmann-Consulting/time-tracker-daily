@@ -132,7 +132,10 @@ const ChatbotWidget = () => {
               </div>
               <div>
                 <h3 className="text-chatbot-primary-foreground font-semibold">ANNA - Virtueller ChatBot</h3>
-                <p className="text-chatbot-primary-foreground/80 text-xs">Online</p>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 bg-success rounded-full animate-pulse" />
+                  <p className="text-success text-xs font-medium">Online</p>
+                </div>
               </div>
             </div>
             <Button
