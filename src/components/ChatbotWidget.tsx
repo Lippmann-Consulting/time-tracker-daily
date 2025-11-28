@@ -17,6 +17,7 @@ const ChatbotWidget = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [sessionId] = useState(() => crypto.randomUUID()); // Persistente Session ID
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   // Chat URL zum N Jackpot Workflow
@@ -71,6 +72,8 @@ const ChatbotWidget = () => {
     setIsLoading(true);
 
     try {
+      console.log("Sending message with sessionId:", sessionId);
+      
       const response = await fetch(WEBHOOK_URL, {
         method: "POST",
         headers: {
@@ -78,7 +81,7 @@ const ChatbotWidget = () => {
         },
         body: JSON.stringify({
           message: userMessage.text,
-          sessionId: crypto.randomUUID(),
+          sessionId: sessionId, // Verwende die persistente Session ID
         }),
       });
 
