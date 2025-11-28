@@ -72,57 +72,86 @@ const ChatbotWidget = () => {
     setIsLoading(true);
 
     try {
-      console.log("Sending message with sessionId:", sessionId);
+      console.log("=== Sending message ===");
+      console.log("Session ID:", sessionId);
+      console.log("User message:", userMessage.text);
+      console.log("Current messages count:", messages.length);
+      
+      const requestBody = {
+        message: userMessage.text,
+        sessionId: sessionId,
+      };
+      console.log("Request body:", JSON.stringify(requestBody));
       
       const response = await fetch(WEBHOOK_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          message: userMessage.text,
-          sessionId: sessionId, // Verwende die persistente Session ID
-        }),
+        body: JSON.stringify(requestBody),
       });
 
-      console.log("Response status:", response.status);
-      console.log("Response ok:", response.ok);
+      console.log("=== Response received ===");
+      console.log("Status:", response.status);
+      console.log("Status text:", response.statusText);
+      console.log("OK:", response.ok);
+      console.log("Headers:", Object.fromEntries(response.headers.entries()));
 
       if (!response.ok) {
-        throw new Error(`Netzwerkfehler: ${response.status}`);
+        throw new Error(`HTTP Error: ${response.status} ${response.statusText}`);
       }
 
-      const data = await response.json();
-      console.log("Received data:", data);
-      console.log("Data type:", typeof data);
-      console.log("Is array:", Array.isArray(data));
+      const responseText = await response.text();
+      console.log("Raw response text:", responseText);
+      
+      let data;
+      try {
+        data = JSON.parse(responseText);
+        console.log("Parsed data:", data);
+        console.log("Data type:", typeof data);
+        console.log("Is array:", Array.isArray(data));
+      } catch (parseError) {
+        console.error("JSON parse error:", parseError);
+        throw new Error("Invalid JSON response from server");
+      }
       
       // n8n gibt ein Array zurück mit einem "output" Feld
-      let botText = "Entschuldigung, ich konnte keine Antwort generieren.";
+      let botText = "";
       
       if (Array.isArray(data) && data.length > 0) {
-        console.log("First item:", data[0]);
+        console.log("Processing array response, first item:", data[0]);
         if (data[0].output) {
           botText = data[0].output;
-          console.log("Using output field:", botText);
+          console.log("✓ Found output field:", botText);
         } else if (data[0].message) {
           botText = data[0].message;
-          console.log("Using message field:", botText);
+          console.log("✓ Found message field:", botText);
+        } else {
+          console.warn("Array item has no output or message field:", Object.keys(data[0]));
         }
       } else if (typeof data === 'object' && data !== null) {
+        console.log("Processing object response");
         if (data.output) {
           botText = data.output;
-          console.log("Using direct output:", botText);
+          console.log("✓ Found direct output:", botText);
         } else if (data.response) {
           botText = data.response;
-          console.log("Using response field:", botText);
+          console.log("✓ Found response field:", botText);
         } else if (data.message) {
           botText = data.message;
-          console.log("Using message field:", botText);
+          console.log("✓ Found message field:", botText);
+        } else {
+          console.warn("Object has no known fields:", Object.keys(data));
         }
       }
       
-      console.log("Final bot text:", botText);
+      if (!botText) {
+        console.error("Could not extract bot text from response");
+        botText = "Entschuldigung, ich konnte keine Antwort verarbeiten.";
+      }
+      
+      console.log("=== Creating bot message ===");
+      console.log("Bot text:", botText);
       
       const botMessage: Message = {
         id: crypto.randomUUID(),
@@ -130,15 +159,28 @@ const ChatbotWidget = () => {
         sender: "bot",
         timestamp: new Date(),
       };
+      
+      console.log("Bot message created:", botMessage);
+      console.log("Adding to messages array");
 
-      setMessages((prev) => [...prev, botMessage]);
+      setMessages((prev) => {
+        console.log("Previous messages count:", prev.length);
+        const newMessages = [...prev, botMessage];
+        console.log("New messages count:", newMessages.length);
+        return newMessages;
+      });
+      
+      console.log("=== Message handling complete ===");
+      
     } catch (error) {
-      console.error("Fehler beim Senden der Nachricht:", error);
-      console.error("Error details:", error instanceof Error ? error.message : error);
+      console.error("=== Error occurred ===");
+      console.error("Error type:", error instanceof Error ? error.constructor.name : typeof error);
+      console.error("Error message:", error instanceof Error ? error.message : error);
+      console.error("Error stack:", error instanceof Error ? error.stack : "No stack");
       
       const errorMessage: Message = {
         id: crypto.randomUUID(),
-        text: "Entschuldigung, es gab ein Problem. Bitte versuche es später erneut.",
+        text: `Fehler: ${error instanceof Error ? error.message : 'Unbekannter Fehler'}. Bitte versuche es erneut.`,
         sender: "bot",
         timestamp: new Date(),
       };
@@ -146,6 +188,7 @@ const ChatbotWidget = () => {
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
+      console.log("Loading state set to false");
     }
   };
 
