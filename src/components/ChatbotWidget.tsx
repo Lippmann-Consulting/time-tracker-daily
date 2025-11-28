@@ -131,7 +131,7 @@ const ChatbotWidget = () => {
                 <MessageCircle className="w-5 h-5 text-chatbot-primary-foreground" />
               </div>
               <div>
-                <h3 className="text-chatbot-primary-foreground font-semibold">N Jackpot Assistent</h3>
+                <h3 className="text-chatbot-primary-foreground font-semibold">ANNA - Virtueller ChatBot</h3>
                 <p className="text-chatbot-primary-foreground/80 text-xs">Online</p>
               </div>
             </div>
