@@ -88,9 +88,20 @@ const ChatbotWidget = () => {
 
       const data = await response.json();
       
+      // n8n gibt ein Array zurück mit einem "output" Feld
+      let botText = "Entschuldigung, ich konnte keine Antwort generieren.";
+      
+      if (Array.isArray(data) && data.length > 0 && data[0].output) {
+        botText = data[0].output;
+      } else if (data.response) {
+        botText = data.response;
+      } else if (data.message) {
+        botText = data.message;
+      }
+      
       const botMessage: Message = {
         id: crypto.randomUUID(),
-        text: data.response || data.message || "Entschuldigung, ich konnte keine Antwort generieren.",
+        text: botText,
         sender: "bot",
         timestamp: new Date(),
       };
