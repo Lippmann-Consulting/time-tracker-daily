@@ -19,6 +19,7 @@ const ChatbotWidget = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId] = useState(() => crypto.randomUUID()); // Persistente Session ID
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Chat URL zum N Jackpot Workflow
   const WEBHOOK_URL = "https://n8n-n8n.v7jz86.easypanel.host/webhook/7d6db2fe-9b59-43d6-85ea-46807fdcda1f/chat";
@@ -44,6 +45,11 @@ const ChatbotWidget = () => {
         timestamp: new Date(),
       };
       setMessages([welcomeMessage]);
+    }
+    
+    // Auto-focus Input wenn Chat geöffnet wird
+    if (isOpen && inputRef.current) {
+      setTimeout(() => inputRef.current?.focus(), 100);
     }
   }, [isOpen, messages.length]);
 
@@ -189,6 +195,9 @@ const ChatbotWidget = () => {
     } finally {
       setIsLoading(false);
       console.log("Loading state set to false");
+      
+      // Auto-focus Input nach dem Senden
+      setTimeout(() => inputRef.current?.focus(), 100);
     }
   };
 
@@ -271,6 +280,7 @@ const ChatbotWidget = () => {
           <div className="p-4 border-t border-border">
             <div className="flex gap-2">
               <Input
+                ref={inputRef}
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={handleKeyPress}
@@ -278,6 +288,7 @@ const ChatbotWidget = () => {
                 className="flex-1"
                 disabled={isLoading}
                 maxLength={1000}
+                autoFocus
               />
               <Button
                 onClick={handleSendMessage}
