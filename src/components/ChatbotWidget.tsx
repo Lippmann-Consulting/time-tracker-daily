@@ -6,8 +6,8 @@ const ChatbotWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [shouldWiggle, setShouldWiggle] = useState(false);
 
-  // Chat URL zum N Jackpot Workflow - bitte durch die tatsächliche URL ersetzen
-  const CHAT_URL = "https://your-chat-url.com/n-jackpot-workflow";
+  // Chat URL zum N Jackpot Workflow
+  const CHAT_URL = "https://n8n-n8n.v7jz86.easypanel.host/webhook/7d6db2fe-9b59-43d6-85ea-46807fdcda1f/chat";
 
   useEffect(() => {
     const wiggleInterval = setInterval(() => {
